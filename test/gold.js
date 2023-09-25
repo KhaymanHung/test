@@ -82,6 +82,11 @@ var createMap = function(map = []) {
                         max_slot = 0;
                     }
 
+                    // 百搭最多2格
+                    if (sym == 22 && max_slot > 1) {
+                        max_slot = 1;
+                    }
+
                     var randProb = Math.floor(Math.random() * nSlotTotalProb[max_slot]);
                     for (var i = 0; i < g_cfgDia.slot.length; i++) {
                         if (randProb < g_cfgDia.slot[i].prob) {
@@ -94,7 +99,7 @@ var createMap = function(map = []) {
                 }
 
 
-                // 決定邊框，只有2格以上的圖案才可能有邊框，百搭及尋寶沒有框
+                // 決定邊框，只有2格以上的圖案才可能有邊框，百搭及尋寶沒有框，新圖案最多銀框
                 var frame = 0; // 邊框類型
                 if (slot > 0 && sym < 21) {
                     var randProb = Math.floor(Math.random() * nFrameTotalProb);
@@ -245,8 +250,8 @@ var _symClear = function(map) {
     // console.log("symData : ");
     // console.log(symData);
 
-    // 計算尋寶的數量，少於4個時刪除
-    if (symData[0].payout[0] < 4) {
+    // 計算尋寶的數量，少於4個時刪除，如果有其它得獎圖案時，也先將尋寶刪除，先計算其它得獎
+    if (symData[0].payout[0] < 4 || symData.length > 1) {
         symData.splice(0, 1);
     }
 
@@ -441,8 +446,24 @@ var runTest = function() {
     var resultList = [];
     var totalFreeSpin = 0;
     var totalWin = 0;
+    var combo = 1;
+    var enterFree = false;
 
     do {
+        if (symData.length > 0) {
+            // 連續得獎時，累計combo數，平時及進入free spin時+1，free spin中得獎時一次+2
+            if (totalFreeSpin > 0) {
+                if (enterFree == true) {
+                    enterFree = false;
+                    combo++;
+                } else {
+                    combo += 2;
+                }
+            } else {
+                combo++;
+            }
+        }
+        // free spin 時，未得獎才會減少 free spin 次數
         if (totalFreeSpin > 0 && symData.length < 1) {
             totalFreeSpin--;
             map = [];
@@ -502,13 +523,17 @@ var runTest = function() {
             }
             temp.path = path;
 
-            // free span 次數
+            // 計算 free span 次數
             var freeSpan = 0;
             if (data.sym == 22) {
+                enterFree = true;
                 freeSpan = g_cfgDia.sym[12].odds[0] + (data.payout[0] - 4) * g_cfgDia.sym[12].odds[1];
             }
             totalFreeSpin += freeSpan;
             temp.freeSpan = freeSpan;
+
+            // 記錄 combo 數
+            temp.combo = combo;
 
             scoreInfo.push(temp);
         })
@@ -521,6 +546,10 @@ var runTest = function() {
         }
     } while(symData.length > 0 || totalFreeSpin > 0);
     mapInfo.resultList = resultList;
+
+    console.log("=================================================")
+    console.log(JSON.stringify(mapInfo));
+    console.log("=================================================")
 
     // debug log
     resultList.forEach((result, index) => {
@@ -558,7 +587,7 @@ var runTest = function() {
             })
             pathStr += "]";
 
-            console.log("sym = " + info.sym + " / payout value : " + payoutStr + " / path = " + pathStr + " / score = " + info.score + " / freeSpan = " + info.freeSpan);
+            console.log("sym = " + info.sym + " / payout value : " + payoutStr + " / path = " + pathStr + " / score = " + info.score + " / combo = " + info.combo + " / freeSpan = " + info.freeSpan);
         });
 
         console.log("=================================================")
