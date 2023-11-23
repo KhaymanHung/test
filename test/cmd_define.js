@@ -1,0 +1,17 @@
+// 圖案編號
+exports.SYMBOLS = {
+    SYMBOLS_10: 1,
+    SYMBOLS_J: 2,
+    SYMBOLS_Q: 3,
+    SYMBOLS_K: 4,
+    SYMBOLS_A: 5,
+    SYMBOLS_SF: 6,
+    SYMBOLS_SE: 7,
+    SYMBOLS_SD: 8,
+    SYMBOLS_SC: 9,
+    SYMBOLS_SB: 10,
+    SYMBOLS_SA: 11,
+    SYMBOLS_WILD: 21,
+    SYMBOLS_SCATTER: 22,
+    SYMBOLS_BONUS: 23,
+};
